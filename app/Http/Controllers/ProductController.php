@@ -90,7 +90,7 @@ class ProductController extends Controller
 
     }
 
-    function UpdateProdact(Request $request, $id){
+    function UpdateProduct(Request $request, $id){
         $validator = Validator::make ($request->all(), [
             'product_name' => 'required|max:50',
             'product_type' => 'required|in:food,beverage,drug,other',
