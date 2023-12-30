@@ -29,69 +29,69 @@ class ProductController extends Controller
             'expired_at' => $payload['expired_at'],
         ]);
         return response()->json([
-            'msg' => 'Data Berhasil Ditambahkan'
+            'status' => true,
+            'message' => 'Data Berhasil Ditambahkan'
         ], 200 );
     }
 
 
-    function showAll(){
-        $product = Product::all();
+    function showAll(Request $request){
+
+        //showbyname
+
+        $productName = $request->input('name');
+
+        //showbytype
+
+        $productType = $request->input('type');
+
+        if (!empty($productName)) {
+            $product = Product::where('product_name', $productName)->get();
+            if ($product->isEmpty()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Produk dengan nama ' . $productName . ' tidak ditemukan.',
+                    'data' => null
+                ], 404);
+            }
+        }elseif (!empty($productType)) {
+            $product = Product::where('product_type', $productType)->get();
+            if ($product->isEmpty()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Produk dengan tipe ' . $productType . ' tidak ditemukan.',
+                    'data' => null
+                ], 404);
+            }
+        }else {
+            $product = Product::all();
+        }
 
         return response()->json([
-            'msg' => 'Data Semua Product',
+            'status'=> true,
+            'message' => 'Data Semua Product',
             'data'=> $product
-        ], 200 );
-
-    }
+            ], 200 );
+        }            
 
     function showById($id){
-        $product = Product::where('id', $id)->first();
-
+        $product = Product::find($id);
         if ($product){
             return response()->json([
-                'msg' => 'Data Product Berdasarkan ID : '. $id,
+                'status' => true,
+                'message' => 'Data Product dengan ID : '. $id,
                 'data'=> $product
             ], 200 );
         }
-        return response()->json([
-            'msg' => 'Data Product dengan ID :'. $id. ' Tidak Ditemukan',
-        ],404);
-
-    }
-
-    function showByName(Request $request){
-        $productName = $request->input('product_name');
-        $product = Product::where('product_name', $productName)->get();
-
-        if ($product) {
-            return response()->json([
-                'msg' => 'Data Product Berdasarkan Name:' .$productName,
-                'data' => $product
-            ],200);
-        }
-        return response()->json([
-            'msg' => 'Data Product dengan Name :'. $productName. ' Tidak Ditemukan',
-        ],404);
-
-    }
-
-    function showByType(Request $request){
-        $product = Product::where('product_type', $request);
-
-        if ($product) {
-            return response()->json([
-                'msg' => 'Data Product Berdasarkan Type:' .$request,
-                'data' => $product
-            ],200);
-        }
-        return response()->json([
-            'msg' => 'Data Product dengan Name :'. $request. ' Tidak Ditemukan',
-        ],404);
+    return response()->json([
+        'status' => false,
+        'message' => 'Data Product dengan ID :'. $id. ' Tidak Ditemukan',
+    ],404);
 
     }
 
     function UpdateProduct(Request $request, $id){
-        $validator = Validator::make ($request->all(), [
+        $validator = Validator::make($request->all(), [
             'product_name' => 'required|max:50',
             'product_type' => 'required|in:food,beverage,drug,other',
             'product_price' => 'required|numeric',
@@ -102,7 +102,8 @@ class ProductController extends Controller
             return response()->json($validator->messages())->setStatusCode(422);
         }
         $payload = $validator->validated();
-        $product = Product::updated([
+        $product = Product::find($id)->first();
+        $product->update([
             'product_name' => $payload['product_name'],
             'product_type' => $payload['product_type'],
             'product_price' => $payload['product_price'],
@@ -110,25 +111,27 @@ class ProductController extends Controller
         ]);
 
         return response()->json([
-            'msg' => 'Data Berhasil Di Update',
-            'data' => $product,
+            'status' => true,
+            'message' => 'Data Berhasil Di Update',
+            'data' => $product, 
         ], 200 );
-
     }
+    
     function deleteProduct($id){
         $product = Product::find($id);
 
         if (!$product) {
             return response()->json([
-                'msg' => 'Data Product dengan ID :' . $id . ' Tidak Ditemukan',
+                'status' => false,
+                'message' => 'Data Product dengan ID :' . $id . ' Tidak Ditemukan',
             ], 404);
         }
 
         $product->delete();
 
         return response()->json([
-            'msg' => 'Data Product dengan ID :' . $id . ' Berhasil Dihapus',
+            'status' => true,
+            'message' => 'Data Product dengan ID :' . $id . ' Berhasil Dihapus',
         ], 200);
     }
-
 }
